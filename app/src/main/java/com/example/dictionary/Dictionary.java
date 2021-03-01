@@ -16,11 +16,8 @@ import java.math.BigInteger;
 import java.util.Random;
 
 public class Dictionary extends AppCompatActivity {
-    BigInteger p = new BigInteger("100000000003");
-    int m = 103647;
-    BigInteger a = new BigInteger("23458768");
-    BigInteger b = new BigInteger("9874326");
-    Word[] word = new Word[m];
+    public long p = 1000000003,m = 103647,a = 23458768,b = 9874326;
+    Word[] word = new Word[(int) m];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,9 +31,9 @@ public class Dictionary extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String searched = input.getText().toString().toLowerCase();
-                BigInteger key = KeyGenerator(searched);
-                int i = PrimaryHash(key, a, b);
-                int j = SecondaryHash(key, BigInteger.valueOf(word[i].ai), BigInteger.valueOf(word[i].bi), BigInteger.valueOf(word[i].pi));
+                int key = (int) KeyGenerator(searched);
+                int i = (int) PrimaryHash(key, a, b);
+                int j = (int) SecondaryHash(key,word[i].ai,word[i].bi,word[i].pi);
                 if(j >= 0 && searched.equals(word[i].sub[j][0])){
                     meaning.setText(word[i].sub[j][1]);
                 }
@@ -47,23 +44,21 @@ public class Dictionary extends AppCompatActivity {
         });
     }
 
-    int PrimaryHash(BigInteger k, BigInteger a, BigInteger b){
-        return a.multiply(k).add(b).mod(p).mod(BigInteger.valueOf(m)).intValue();
+    long PrimaryHash(long k, long a, long b){
+        return (( a * k + b ) % p )%m;
     }
 
-    int SecondaryHash(BigInteger k, BigInteger aj, BigInteger bj, BigInteger mj){
-        if(mj.equals(BigInteger.valueOf(0))) return -1;
-        return  aj.multiply(k).add(bj).mod(p).mod(mj).intValue();
+    long SecondaryHash(long k, long aj, long bj, long mj){
+        if(mj==0) return -1;
+        return  ((aj * k + bj) % p)% mj;
     }
 
-    BigInteger KeyGenerator(String ss){
-        BigInteger key = new BigInteger("0");
-        BigInteger t = new BigInteger("1");
-        for(int i = 0; i < ss.length(); i++){
-            key = key.add(t.multiply(BigInteger.valueOf((int)ss.charAt(i)-97)));
-            key = key.mod(p);
-            t = t.multiply(BigInteger.valueOf(29));
-            t = t.mod(p);
+    long KeyGenerator(String searched){
+        long key = 0;
+        long t = 1;
+        for(long i = 0; i < searched.length(); i++){
+            key = (key + (t*((int)searched.charAt((int) i)-97)))%p;
+            t = (t*29)%p;
         }
         return key;
     }
@@ -86,13 +81,13 @@ public class Dictionary extends AppCompatActivity {
             for (int i = 0; i < jsnArra.length(); i++){
                 JSONObject jsnObj = jsnArra.getJSONObject(i);
                 String en = jsnObj.getString("en").toLowerCase();
-                word[PrimaryHash(KeyGenerator(en), a, b)].pi++;
+                word[(int) PrimaryHash(KeyGenerator(en), a, b)].pi++;
             }
             Random random = new Random();
             for(int i = 0; i < m; i++){
                 word[i].pi *= word[i].pi;
-                word[i].ai = 1 + random.nextInt(p.intValue()-1);
-                word[i].bi = random.nextInt(p.intValue());
+                word[i].ai = 1 + random.nextInt((int) (p-1));
+                word[i].bi = random.nextInt((int) p);
                 word[i].setSub();
             }
 
@@ -100,9 +95,9 @@ public class Dictionary extends AppCompatActivity {
                 JSONObject jsnObj = jsnArra.getJSONObject(i);
                 String english = jsnObj.getString("en").toLowerCase();
                 String bangla = jsnObj.getString("bn");
-                BigInteger key = KeyGenerator(english);
-                int j = PrimaryHash(key, a, b);
-                int k = SecondaryHash(key, BigInteger.valueOf(word[j].ai), BigInteger.valueOf(word[j].bi), BigInteger.valueOf(word[j].pi));
+                int key = (int) KeyGenerator(english);
+                int j = (int) PrimaryHash(key, a, b);
+                int k = (int) SecondaryHash(key, word[j].ai,word[j].bi,word[j].pi);
                 word[j].sub[k][0] = english;
                 word[j].sub[k][1] = bangla;
             }
