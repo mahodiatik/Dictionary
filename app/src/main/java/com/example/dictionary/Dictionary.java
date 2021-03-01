@@ -12,7 +12,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.util.Random;
 
 public class Dictionary extends AppCompatActivity {
